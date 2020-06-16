@@ -2,7 +2,7 @@ import { Rule } from "../rule";
 
 export interface DiffParams {
     pattern: RegExp;
-    expected?: string; // replaceが必要ないパターンの時渡されない場合がある
+    expected?: string | string[]; // replaceが必要ないパターンの時渡されない場合がある
     index: number;
     matches: string[];
     rule?: Rule;
@@ -10,11 +10,12 @@ export interface DiffParams {
 
 export class Diff {
     pattern: RegExp;
-    expected?: string;
+    expected?: string | string[];
     index: number;
     matches: string[];
     /** @internal */
     _newText?: string;
+    _options?: string[];
     rule?: Rule;
 
     constructor(params: DiffParams) {
@@ -38,6 +39,10 @@ export class Diff {
             return null;
         }
 
+        if (this.expected instanceof Array) {
+            return null;
+        }
+
         const result = this.expected.replace(/\$([0-9]{1,2})/g, (match: string, g1: string) => {
             const index = parseInt(g1, 10);
             if (index === 0 || (this.matches.length - 1) < index) {
@@ -47,6 +52,36 @@ export class Diff {
         });
         this._newText = result;
         return this._newText;
+    }
+
+    get options(): string[] {
+        if (this._newText != null) {
+            return [this._newText];
+        }
+
+        if (this._options != null) {
+            return this._options;
+        }
+
+        if (typeof this.expected === "string") {
+            return this.newText ? [this.newText] : [];
+        }
+
+        if (Array.isArray(this.expected)) {
+            const result = this.expected.map((exp) => {
+                return exp.replace(/\$([0-9]{1,2})/g, (match: string, g1: string) => {
+                    const index = parseInt(g1, 10);
+                    if (index === 0 || (this.matches.length - 1) < index) {
+                        return match;
+                    }
+                    return this.matches[index] || "";
+                });
+            });
+            this._options = result;
+            return this._options;
+        } else {
+            throw new TypeError();
+        }
     }
 
     /**

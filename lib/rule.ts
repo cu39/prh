@@ -9,7 +9,7 @@ import * as raw from "./raw";
 import { ChangeSet } from "./changeset";
 
 export class Rule {
-    expected: string;
+    expected: string | string[];
     pattern: RegExp;
     regexpMustEmpty: string | undefined;
     options: Options;
@@ -72,6 +72,9 @@ export class Rule {
         if (pattern === "") {
             throw new Error("pattern can't be empty");
         } else if (pattern == null) {
+            if (Array.isArray(this.expected)) {
+                throw new Error("expected must be a string when pattern is omitted");
+            }
             let result = spreadAlphaNum(this.expected);
             if (this.options.wordBoundary) {
                 result = addBoundary(result);

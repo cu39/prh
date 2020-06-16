@@ -10,6 +10,15 @@ describe("Rule", () => {
 
         assert(rule.pattern instanceof RegExp);
     });
+    it("parse raw.Rule with expected array", () => {
+        assert.throws(() => {
+            new Rule({
+                expected: ["vvakame", "cu39"],
+            });
+        }, {
+                name: "Error",
+            });
+    });
     it("parse pattern same as patterns", () => {
         const ruleA = new Rule({
             expected: "vvakame",
